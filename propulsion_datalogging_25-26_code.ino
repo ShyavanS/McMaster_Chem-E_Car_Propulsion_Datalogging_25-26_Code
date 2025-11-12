@@ -24,11 +24,13 @@ Returns:     void
 
 const byte pinList[2][8] = 
 {
-    {2,3,4,5,6,7,8,9}, // arduino pins for segment display
-    {10,11,12,13,0,0,0,0} // arduino pins for digit strobes
+    {2,3,4,5,6,7,8,9}, // arduino pins for segment display (g, f, e, d, c, b, a, dp)
+    {10,11,12,13,14,15,0,0} // arduino pins for digit strobes (Strobe1, Strobe2, Strobe3, Strobe4, a-d', b-d)
 };
 
-char displayString[5] = {' ', ' ', ' ', ' ', '\0'};
+const byte MSB_pinList[5] = {14, 15, 6, 10, 12};
+
+String displayString = "";//{' ', ' ', ' ', ' ', '\0'};
 
 // 7 segment switch case
 
@@ -71,13 +73,66 @@ byte read_value()
     return bits;
 }
 
-// finding active digit
+// find first digit
+byte get_first_digit()
+{
+    // int i;
+    // // if the pins for the 1 in the first LED are both high
+    // if (digitalRead(pinList[0][2]) == HIGH && digitalRead(pinList[0][3]) == HIGH &&)
+    //     i = 1
+    // else
+    //     i = 0
+ 
+    // // if the pin for c is high, check if the pins for d and d are high
+    // if (digitalRead(pinList[0][2]) == HIGH)
+    //     //if the pins corresponding to d and d' are LOW then make i negative
+    //     if (digitalRead(pinList[0][9]) == LOW)
+    //         i = i*-1
+
+    int i;
+    
+    bool changed_1 = false;
+    bool changed_2 = false;
+
+    byte condition1 = 0;
+    byte condition2 = 0;
+    
+    if(digitalRead(pinList[1][0]) && !changed_1) {
+        for(i = 0; i < 5; i++)
+        {
+            condition1 |= (digitalRead(MSB_pinList[i]) == HIGH) << i; // active low seg
+        }
+        changed_1 = true;
+    }
+
+    if(digitalRead(pinList[1][2]) && !changed_2) {
+        for(i = 0; i < 5; i++)
+        {
+            condition2 |= (digitalRead(MSB_pinList[i]) == HIGH) << i; // active low seg
+        }
+        changed_2 = true;
+    }
+
+    if(condition1 == 0b11110 && condition2 == 0b11101 && changed_1 && changed_2) {
+        // this is a positive 1
+        displayString += "+1";
+    } else if(condition1 == 0b11110 && condition2 == 0b00101 && changed_1 && changed_2) {
+        // this is a positive 0
+    } else if(condition1 == 0b00110 && condition2 == 0b11101 && changed_1 && changed_2) {
+        // this is a negative 1
+    } else if(condition1 == 0b00110 && condition2 == 0b00101 && changed_1 && changed_2) {
+        // this is a negative 0
+    }
+}
+
+
+// finding other 3 digits
 
 int get_active_digit()
 {
     int i;
 
-    for(i = 0; i < 4; i++)
+    for(i = 1; i < 4; i++)
     {
         if (digitalRead(pinList[1][i]) == HIGH) // active high strobe
             return i;
@@ -85,6 +140,7 @@ int get_active_digit()
 
     return -1;
 }
+
 
 void setup()
 {
@@ -120,7 +176,7 @@ void loop()
   // Loop code to run repeatedly goes here
 
   int digit = get_active_digit();
-    if(digit >= 0)
+    if(digit >= 0) //check for other digits after the first strobe was turned on
     {
         byte segment_bit = read_value();
         displayString[digit] = segment_value(segment_bit);
