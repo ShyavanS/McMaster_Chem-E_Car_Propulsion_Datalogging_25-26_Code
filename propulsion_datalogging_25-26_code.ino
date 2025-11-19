@@ -195,28 +195,36 @@ void loop()
   {
       displayString = "";
   }
-  displayString += get_sign(); //append the sign of the first digit
+  byte condition1 = 0;
+  for(int i = 0; i < 5; i++)
+        {
+            condition1 |= (digitalRead(MSB_pinList[i]) == HIGH) << i; // active low seg
+        }
+  //displayString += get_sign(); //append the sign of the first digit
 
   while(get_active_digit() != 1) {}
   char temp = segment_value(read_value);
 
   while(get_active_digit() != 2) {}
-  byte condition = 0;
-  for(i = 0; i < 5; i++)
-  {
-      condition |= (digitalRead(MSB_pinList[i]) == HIGH) << i; // active low seg
-  }
+  byte condition2 = 0;
+  for(int i = 0; i < 5; i++)
+    {
+            condition2 |= (digitalRead(MSB_pinList[i]) == HIGH) << i; // active low seg
+    }
   
-  //check conditions for if its a 1 or a 0
-  if (condition == /*case for a 0)*/)
-  {
-      displayString += '0';
-  }
-  else if (condition == /*case for a 1*/)
-  {
-      displayString += '1';
-  }
-
+if(condition1 == 0b11110 && condition2 == 0b11101) {
+        // this is a positive 1
+        displayString += "+1";
+    } else if(condition1 == 0b11110 && condition2 == 0b00101) {
+        // this is a positive 0
+        displayString += "0";
+    } else if(condition1 == 0b00110 && condition2 == 0b11101) {
+        // this is a negative 1
+        displayString += "-1";
+    } else if(condition1 == 0b00110 && condition2 == 0b00101) {
+        // this is a negative 0
+        displayString += "-0";
+    }
   displayString += temp;
   displayString = segment_value(read_value);
 
