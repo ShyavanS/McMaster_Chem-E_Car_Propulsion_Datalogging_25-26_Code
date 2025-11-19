@@ -189,67 +189,41 @@ void loop()
 {
   // Loop code to run repeatedly goes here
   int digit = get_active_digit();
-  
-    if (digit == 0) // if the first strobe is on, clear the displayString and start cocatenating a new string
-    {
-        for (int i = 1; i<5; i++) //empty all the elements of displayChars
-        {
-            displayChars[i] = '0';
-        }
-        displayChars[0] += get_sign(); //append the sign of the first digit
-        strobe_1 = true;
-    }
-    else if(digit > 0) // check for other digits after the first strobe was turned on
-    {
-        // if next strobe 
-        if (digit == 1)
-        {
-            displayChars[1] = segment_value(read_value);
-        }
-        // if strobe 3 is on, check for the value of the first digit (if its a 0 or 1)
-        if (digit == 2)
-        {
-            strobe_2 = true;
-            if (strobe_1 == true && strobe_2 == true)
-            {
-                byte condition = 0;
-                for(i = 0; i < 5; i++)
-                {
-                    condition |= (digitalRead(MSB_pinList[i]) == HIGH) << i; // active low seg
-                }
-                
-                //check conditions for if its a 1 or a 0
-                if (condition == /*case for a 0)*/)
-                {
-                    displayChars[0] += '0';
-                }
-                else if (condition == /*case for a 1*/)
-                {
-                    displayChars[0] += '1';
-                }   
-            }
 
-            displayChars[2] = segment_value(read_value);
-            strobe_3 = true;
-        }   
-        if (digit == 3)
-        {
-            displayChars[3] = segment_value(read_value);
-            strobe_4 = true;
-        }
-        
-        //update displayString only after every strobe has been turned on in that cycle
-        if(strobe_1 && strobe_2 && strobe_3 && strobe_4)
-        {
-            for (char entry : displayChars)
-            {
-                displayString += entry;
-            } 
-            
-            strobe_1 = strobe_2 = strobe_3 = strobe_4 = false;
-        }
-        //byte segment_bit = read_value();
-       //displayString[digit] = segment_value(segment_bit);
-    }
+  while(get_active_digit() != 0) {}
+  for (int i = 1; i<5; i++) //empty all the elements of displayChars
+  {
+      displayChars[i] = '0';
+  }
+  displayChars[0] += get_sign(); //append the sign of the first digit
+
+  while(get_active_digit() != 1) {}
+  displayChars[1] = segment_value(read_value);
+
+  while(get_active_digit() != 2) {}
+  byte condition = 0;
+  for(i = 0; i < 5; i++)
+  {
+      condition |= (digitalRead(MSB_pinList[i]) == HIGH) << i; // active low seg
+  }
+  
+  //check conditions for if its a 1 or a 0
+  if (condition == /*case for a 0)*/)
+  {
+      displayChars[0] += '0';
+  }
+  else if (condition == /*case for a 1*/)
+  {
+      displayChars[0] += '1';
+  }
+
+  displayChars[2] = segment_value(read_value);
+
+  while(get_active_digit() != 3) {}
+  displayChars[3] = segment_value(read_value);
+  for (char entry : displayChars)
+  {
+      displayString += entry;
+  } 
 }
 
