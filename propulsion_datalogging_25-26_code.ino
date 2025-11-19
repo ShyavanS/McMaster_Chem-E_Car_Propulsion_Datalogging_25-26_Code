@@ -193,12 +193,12 @@ void loop()
   while(get_active_digit() != 0) {}
   for (int i = 1; i<5; i++) //empty all the elements of displayChars
   {
-      displayChars[i] = '0';
+      displayString = "";
   }
-  displayChars[0] += get_sign(); //append the sign of the first digit
+  displayString += get_sign(); //append the sign of the first digit
 
   while(get_active_digit() != 1) {}
-  displayChars[1] = segment_value(read_value);
+  char temp = segment_value(read_value);
 
   while(get_active_digit() != 2) {}
   byte condition = 0;
@@ -210,20 +210,17 @@ void loop()
   //check conditions for if its a 1 or a 0
   if (condition == /*case for a 0)*/)
   {
-      displayChars[0] += '0';
+      displayString += '0';
   }
   else if (condition == /*case for a 1*/)
   {
-      displayChars[0] += '1';
+      displayString += '1';
   }
 
-  displayChars[2] = segment_value(read_value);
+  displayString += temp;
+  displayString = segment_value(read_value);
 
   while(get_active_digit() != 3) {}
-  displayChars[3] = segment_value(read_value);
-  for (char entry : displayChars)
-  {
-      displayString += entry;
-  } 
+  displayString = segment_value(read_value);
 }
 
