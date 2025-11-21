@@ -30,49 +30,76 @@ byte second_digit = 0;
 // 7 segment switch case
 void segment_value(byte segment_bit)
 {
-    if (segment_bit & 0b10000000 == 0b10000000)
+    byte dp = segment_bit & 0b10000000;
+    byte num = segment_bit & 0b01111111;
+
+    switch (dp)
     {
+    case 0b10000000:
         displayString += ".";
+        break;
+    case 0b00000000:
+        break;
+    default:
+        break;
     }
 
-    segment_bit &= 0b01111111;
-
-    switch (segment_bit)
+    switch (num)
     {
-    case 0b00111111:
+    case 0b01111110:
         displayString += "0";
         break;
-    case 0b00000110:
+    case 0b00110000:
         displayString += "1";
         break;
-    case 0b01011011:
+    case 0b01101101:
         displayString += "2";
         break;
-    case 0b01001111:
+    case 0b01111001:
         displayString += "3";
         break;
-    case 0b01100110:
+    case 0b00110011:
         displayString += "4";
         break;
-    case 0b01101101:
+    case 0b01011011:
         displayString += "5";
         break;
-    case 0b01111101:
+    case 0b00011111:
         displayString += "6";
         break;
-    case 0b00000111:
+    case 0b01110000:
         displayString += "7";
         break;
     case 0b01111111:
         displayString += "8";
         break;
-    case 0b01101111:
+    case 0b01110011:
         displayString += "9";
         break;
+    case 0b00001110:
+        displayString += "L";
+        break;
     default:
-        displayString += "0";
+        displayString += " ";
         break;
     }
+}
+
+inline uint8_t fast_read(uint8_t pin)
+{
+    if (pin < 8)
+    { // PORTD pins 0–7
+        return (PIND & (1 << pin)) ? HIGH : LOW;
+    }
+    else if (pin < 14)
+    { // PORTB pins 8–13
+        return (PINB & (1 << (pin - 8))) ? HIGH : LOW;
+    }
+    else if (pin < 20)
+    { // PORTC pins 14–19 (A0–A5)
+        return (PINC & (1 << (pin - 14))) ? HIGH : LOW;
+    }
+    return LOW;
 }
 
 // put all segments into byte
@@ -84,7 +111,7 @@ byte read_value()
 
     for (int i = 0; i < 8; i++)
     {
-        bits |= (digitalRead(MSB_pinList[i]) == HIGH) << i; // active low seg
+        bits |= (fast_read(pinList[0][i]) == HIGH) << i; // active high seg
     }
 
     return bits;
@@ -99,7 +126,7 @@ byte read_first_value()
 
     for (int i = 0; i < 3; i++)
     {
-        bits |= (digitalRead(MSB_pinList[i]) == HIGH) << i; // active low seg
+        bits |= (fast_read(MSB_pinList[i]) == HIGH) << i; // active high seg
     }
 
     return bits;
@@ -110,51 +137,51 @@ void get_first_segment_value(byte condition_1, byte condition_2)
 {
     switch (condition_1)
     {
-    case 0b101:
+    case 0b110:
         displayString += "+";
         break;
     case 0b111:
         displayString += "+";
         break;
-    case 0b001:
+    case 0b100:
         displayString += "-";
         break;
-    case 0b011:
+    case 0b101:
         displayString += "-";
         break;
     default:
-        displayString += "+";
+        displayString += " ";
         break;
     }
 
     switch (condition_2)
     {
-    case 0b010:
-        displayString += "1";
-        break;
-    case 0b011:
-        displayString += "1";
-        break;
-    case 0b110:
-        displayString += "1";
-        break;
-    case 0b111:
-        displayString += "1";
-        break;
     case 0b000:
         displayString += "0";
         break;
-    case 0b001:
+    case 0b010:
         displayString += "0";
         break;
     case 0b100:
         displayString += "0";
         break;
-    case 0b101:
+    case 0b110:
         displayString += "0";
         break;
+    case 0b001:
+        displayString += "1";
+        break;
+    case 0b011:
+        displayString += "1";
+        break;
+    case 0b101:
+        displayString += "1";
+        break;
+    case 0b111:
+        displayString += "1";
+        break;
     default:
-        displayString += "0";
+        displayString += " ";
         break;
     }
 }
@@ -164,7 +191,7 @@ int get_active_digit()
 {
     for (int i = 0; i < 4; i++)
     {
-        if (digitalRead(pinList[1][i]) == HIGH) // active high strobe
+        if (fast_read(pinList[1][i]) == HIGH) // active high strobe
             return i;
     }
 
@@ -174,7 +201,6 @@ int get_active_digit()
 void setup()
 {
     Serial.begin(115200);
-    
 
     for (int i = 0; i < 8; i++)
     {
@@ -201,22 +227,21 @@ void loop()
     first_digit = 0;
     second_digit = 0;
 
-    // while (get_active_digit() != 0)
-    // {
-    //     Serial.println("zero not strobed");
-    // }
+    while (get_active_digit() != 0)
+    {
+    }
 
     sign = read_first_value();
 
-    // while (get_active_digit() != 1)
-    // {
-    // }
+    while (get_active_digit() != 1)
+    {
+    }
 
     second_digit = read_value();
 
-    // while (get_active_digit() != 2)
-    // {
-    // }
+    while (get_active_digit() != 2)
+    {
+    }
 
     first_digit = read_first_value();
 
@@ -224,13 +249,14 @@ void loop()
     segment_value(second_digit);
     segment_value(read_value());
 
-    // while (get_active_digit() != 3)
-    // {
-    // }
+    while (get_active_digit() != 3)
+    {
+    }
 
     segment_value(read_value());
 
+    Serial.print(micros() / 1e6, 6);
+    Serial.print(",");
     Serial.println(displayString);
-
-    delay(1000);
+    delayMicroseconds(10000);
 }
