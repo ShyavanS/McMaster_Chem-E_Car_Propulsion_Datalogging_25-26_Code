@@ -258,5 +258,5 @@ void loop()
     Serial.print(micros() / 1e6, 6);
     Serial.print(",");
     Serial.println(displayString);
-    delayMicroseconds(10000);
+    delayMicroseconds(147750);
 }
